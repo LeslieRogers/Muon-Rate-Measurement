@@ -1,0 +1,35 @@
+### --------------------------------------------------------
+###  Next: Initialization macro of nexus.
+### --------------------------------------------------------
+
+
+#GEOMETRY
+/nexus/RegisterGeometry NextNew
+
+
+###GENERATOR
+/nexus/RegisterGenerator MuonAngleGenerator
+
+###ACTIONS
+/nexus/RegisterTrackingAction DefaultTrackingAction
+/nexus/RegisterEventAction DefaultEventAction
+/nexus/RegisterRunAction DefaultRunAction
+
+/PhysicsList/RegisterPhysics G4EmStandardPhysics_option4
+/PhysicsList/RegisterPhysics G4EmExtraPhysics
+/PhysicsList/RegisterPhysics G4DecayPhysics
+/PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
+/PhysicsList/RegisterPhysics G4HadronElasticPhysicsHP
+/PhysicsList/RegisterPhysics G4HadronPhysicsQGSP_BERT_HP
+/PhysicsList/RegisterPhysics G4StoppingPhysics
+/PhysicsList/RegisterPhysics G4IonPhysics
+/PhysicsList/RegisterPhysics NexusPhysics
+/PhysicsList/RegisterPhysics G4StepLimiterPhysics
+
+/physics_lists/em/MuonNuclear true
+
+/nexus/RegisterDelayedMacro /n/holystore01/LABS/guenette_lab/Lab/software/next/nexus/nexus-v6_01_01/macros/physics/Xe137.mac
+/nexus/RegisterMacro CONFIG_PATH
+
+### PERSISTENCY MANAGER
+/nexus/RegisterPersistencyManager PersistencyManager

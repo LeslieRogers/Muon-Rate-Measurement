@@ -1,0 +1,40 @@
+# ----------------------------------------------------------------------------
+## nexus | NEW_fullKr.config.mac
+##
+## Configuration macro to simulate Kr-83 decays in the NEW geometry
+## with generation and transportation of optical photons.
+##
+## The NEXT Collaboration
+## ----------------------------------------------------------------------------
+
+# VERBOSITY
+/control/verbose 0
+/run/verbose 0
+/event/verbose 1
+/tracking/verbose 1
+
+#/process/em/verbose 0
+
+# GEOMETRY
+/Geometry/NextNew/pressure 10.1 bar
+/Geometry/NextNew/elfield false
+/Geometry/NextNew/gas enrichedXe
+
+
+/PhysicsList/Nexus/clustering           false
+/PhysicsList/Nexus/drift                false
+/PhysicsList/Nexus/electroluminescence  false
+
+
+
+# GENERATOR
+/Generator/MuonAngleGenerator/min_energy 200 GeV
+/Generator/MuonAngleGenerator/max_energy 200 GeV
+/Generator/MuonAngleGenerator/region EXTERNAL_SPHERE
+#/Generator/MuonAngleGenerator/azimuth_rotation 0 deg
+/Generator/MuonAngleGenerator/angles_on true
+
+
+# PERSISTENCY
+/nexus/persistency/start_id 0
+/nexus/persistency/outputFile OUTPUT
