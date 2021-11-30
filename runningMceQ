@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Oct 24 18:43:35 2021
+
+@author: rogerslc
+"""
+import pylab as plt
+import numpy as np
+import pandas as pd
+from MCEq.core import config, MCEqRun
+import crflux.models as crf
+
+import scipy
+from scipy import interpolate
+
+import os.path
+from os import path
+
+
+
+# path to save the file                                                                                                                                                                 
+savelocat='/Users/rogerslc/Documents/MuFluxPred/NewInteractionModel/'                                                                                                                                                
+
+
+#pdmtn=pd.read_hdf('/Users/rogerslc/PROPOSAL/MountaintforProposal.h5')
+pdmtn=pd.read_hdf("/Users/rogerslc/PROPOSAL/MountaintforProposal_OuterPerim.h5","coordinates")
+
+def MuonFluxCalculate(zvals,theta,phi):
+    mag = 3
+    
+    print("Evaluating {} deg Flux".format(theta))
+    #mceq.set_theta_deg(angle_deg)
+
+    
+    mceq = MCEqRun(
+        # High-energy hadronic interaction model
+        #interaction_model='SIBYLL23C',
+        interaction_model='EPOS-LHC',
+        # cosmic ray flux at the top of the atmosphere
+        primary_model = (crf.HillasGaisser2012, 'H3a'),
+        #primary_model = (crf.ZatsepinSokolskaya,'pamela'),
+        # zenith angle
+        theta_deg = theta,
+        #e_max= 100000
+        )
+
+    mceq.set_density_model(('CORSIKA', ("Karlsruhe", None)))
+
+    h_grid = zvals# altitudes
+    #h_grid =[0,0] #for zero altitude
+    X_grid = mceq.density_model.h2X(h_grid)
+    
+    #print(X_grid,zvals)
+    r=0
+    #mceq.e_max= 100000
+    mceq.solve(int_grid=X_grid)
+    
+
+    #To obtain particle spectra at each depth point:
+    muflx=(mceq.get_solution('mu+',mag, grid_idx=0)+mceq.get_solution('mu-',mag, grid_idx=0))
+    Energies=mceq.e_grid
+    
+    #print(muflx)
+    Thetas=mceq.theta_deg
+    clmdp=X_grid[0]
+    altitude=zvals[0]
+    PHIval=phi
+
+    df=pd.DataFrame(muflx, columns = ['MuFLux'])
+    df['Energies']=Energies
+    df['theta']=Thetas
+    df['columndepth']=clmdp
+    df['altitude']=altitude
+    df['phis']=PHIval
+        
+    '''    else:
+        #print('Reading solution at X = {0:5.2f} g/cm2'.format(X_grid[idx]))
+        df2=pd.DataFrame(muflx, columns = ['MuFLux'])
+        df2['Energies']=Energies
+        df2['theta']=Thetas
+        df2['columndepth']=clmdp
+        df2['altitude']=altitude
+        df2['phis']=PHIval
+        df=df.append(df2, ignore_index=True)
+        #longitudinal_spectrum.append(mceq.get_solution('mu+', grid_idx=idx)+mceq.get_solution('mu-', grid_idx=idx))
+        #each long_spec[num] corresponds to a height with each of the energies'''
+    r+=1
+    
+    #print(df)
+
+    return df
+
+spc=0
+j=0
+mps=0
+
+for z in pdmtn.altitude.unique():
+    
+    if path.isfile(savelocat+'MCeQouput'+str(np.round(z/100,0))+'metersOuter.h5')==True:
+        mps+=1
+        print ('MCeQouput'+str(np.round(z/100,0))+'metersOuter.h5', 'already exists',len(pdmtn.altitude.unique())-mps, 'remains')
+        continue
+    
+    
+    spc=0
+    for Ts in pdmtn[pdmtn.altitude ==z].alpha.unique():
+        print(z,Ts,np.cos(np.deg2rad(Ts)))
+        if (Ts >90):
+            continue       
+        Ps=pdmtn[(pdmtn.altitude ==z)&((pdmtn.alpha ==Ts))].beta.iloc[0]
+        if len(pdmtn[(pdmtn.altitude ==z)&((pdmtn.alpha ==Ts))].beta)>1:
+            print (pdmtn[(pdmtn.altitude ==z)&((pdmtn.alpha ==Ts))].beta)
+        predicmus=MuonFluxCalculate([z],np.rad2deg(Ts),np.rad2deg(Ps))
+        #print(predicmus)
+        if spc==0:
+            savmus=predicmus
+            spc+=1
+        else:
+            savmus.append(predicmus)
+            spc+=1
+            
+            
+            
+    if spc==0:
+        print('nothing')
+        continue
+    
+    #print(savmus)
+    print('should have saved somthing',spc,len(pdmtn.altitude.unique()))
+    
+    data_out1 = savelocat+'MCeQouput'+str(np.round(z/100,0))+'metersOuter.h5'
+    print(data_out1)
+    savmus.to_hdf(data_out1,'Muons')
+    j+=1
+    #if j==37:
+        #break
+    
+    
+    
